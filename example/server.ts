@@ -15,15 +15,45 @@ async function readTemplateFile(filename: string) {
   return html
 }
 
-async function expandTemplateReference(html: string) {}
+function renderDataAttributes(html: string, json: any): string {
+  if (Array.isArray(json)) {
+    return json.map(item => renderDataAttributes(html, item)).join('')
+  }
+  return html
+}
 
-async function expandDataTemplate(html: string) {
+// data-name -> innerHTML
+type TemplateDict = Record<string, string>
+
+function parseTemplateElements(html: string) {
+  let templateDict: TemplateDict = {}
+  let remain = html
+  for (; remain.length > 0; ) {
+    let match = remain.match(
+      /<template (.|\n)*?data-name="(.+?)"(.|\n)*?>(.|\n)*?<\/template>/,
+    )
+    if (!match) break
+    let name = match[2]
+    let outerHTML = match[0]
+    let startIndex = outerHTML.indexOf('>')
+    let end = '</template>'
+    let endIndex = outerHTML.length - end.length
+    let innerHTML = outerHTML.substring(startIndex + 1, endIndex)
+    templateDict[name] = innerHTML
+    remain = remain.substring(match.index! + outerHTML.length)
+  }
+  return templateDict
+}
+
+async function expandDataTemplate(html: string, json: any) {
+  let templateDict = parseTemplateElements(html)
+  console.log({ templateDict })
   let acc = ''
   let remain = html
   for (; remain.length > 0; ) {
-    let match = remain.match(/ data-template="(.+)"/)
+    let match = remain.match(/ data-template="(.+?)"/)
     if (!match) {
-      console.debug('no data-template on html file')
+      // console.debug('no data-template on html file')
       break
     }
     let templateName = match[1]
@@ -54,7 +84,17 @@ async function expandDataTemplate(html: string) {
     if (templateName.endsWith('.html')) {
       templateHTML = await readTemplateFile(templateName)
     } else {
-      templateHTML = 'TODO'
+      let bind = hostStart.match(/ data-bind="(.+?)"/)?.[1]
+      if (!(templateName in templateDict)) {
+        console.debug(
+          'failed to find template by data-name attribute:',
+          templateName,
+        )
+        break
+      }
+      let templateInnerHTML = templateDict[templateName]
+      let data = json[bind!] || {}
+      templateHTML = renderDataAttributes(templateInnerHTML, data)
     }
 
     let host = hostStart + templateHTML + hostEnd
@@ -69,7 +109,11 @@ async function expandDataTemplate(html: string) {
 app.get('/', async (req, res, next) => {
   try {
     let html = await readFileString('public/index.html')
-    html = await expandDataTemplate(html)
+    let articles = [
+      { id: 1, title: 'Apple', desc: 'Apple is a red fruit' },
+      { id: 2, title: 'Banana', desc: 'Banana is a yellow fruit' },
+    ]
+    html = await expandDataTemplate(html, { articles })
     res.contentType('text/html')
     res.end(html)
   } catch (error) {
