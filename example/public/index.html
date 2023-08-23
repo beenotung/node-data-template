@@ -30,17 +30,10 @@
     <script>
       function init() {
         renderTemplate(header)
+        getJSON('/articles', json => renderTemplate(articleList, json))
         renderTemplate(footer)
-        let articles = [
-          { id: 1, title: 'Apple', desc: 'Apple is a red fruit' },
-          { id: 2, title: 'Banana', desc: 'Banana is a yellow fruit' },
-        ]
-        for (let article of articles) {
-          article.href = '/article.html?id=' + article.id
-        }
-        renderTemplate(articleList, { articles })
       }
-      // init()
+      init()
     </script>
   </body>
 </html>

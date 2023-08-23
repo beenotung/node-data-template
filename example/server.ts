@@ -15,6 +15,13 @@ async function readTemplateFile(filename: string) {
   return html
 }
 
+function escapeHTML(data: any): string {
+  return String(data)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
 function renderDataAttributes(html: string, json: any): string {
   if (Array.isArray(json)) {
     return json.map(item => renderDataAttributes(html, item)).join('')
@@ -22,18 +29,27 @@ function renderDataAttributes(html: string, json: any): string {
   let acc = ''
   let remain = html
   for (; remain.length > 0; ) {
-    let match = remain.match(
-      /<(.+?) (.|\n)*?data-text="(.+?)"(.|\n)*?>(.|\n)*?<\//,
+    let tagMatch = remain.match(/<([\w-]+)/)
+    if (!tagMatch) break
+    let tagName = tagMatch[1]
+    let before = remain.substring(0, tagMatch.index)
+    let openTagEndIndex = remain.indexOf('>', tagMatch.index)
+    let openTag = remain.substring(tagMatch.index!, openTagEndIndex + 1)
+    let attrMatch = openTag.match(/data-text="(.+?)"/)
+    if (!attrMatch) {
+      acc += before + openTag
+      remain = remain.substring(openTagEndIndex + 1)
+      continue
+    }
+    let name = attrMatch[1]
+    let innerHTML = escapeHTML(json[name])
+    let closeTag = `</${tagName}>`
+    let closeTagStartIndex = remain.indexOf(
+      closeTag,
+      tagMatch.index! + openTag.length,
     )
-    if (!match) break
-    let tagName = match[1]
-    let name = match[3]
-    let startIndex = match[0].indexOf('>')
-    let suffix = `</${tagName}>`
-    let endIndex = match[0].indexOf(suffix, startIndex + 1)
-    let before = remain.substring(0, match.index)
-    let after = remain.substring(match.index! + endIndex + suffix.length)
-    acc += before + json[name]
+    let after = remain.substring(closeTagStartIndex + closeTag.length)
+    acc += before + openTag + innerHTML + closeTag
     remain = after
   }
   return acc + remain
@@ -64,7 +80,6 @@ function parseTemplateElements(html: string) {
 
 async function expandDataTemplate(html: string, json: any) {
   let templateDict = parseTemplateElements(html)
-  console.log({ templateDict })
   let acc = ''
   let remain = html
   for (; remain.length > 0; ) {
@@ -123,13 +138,10 @@ async function expandDataTemplate(html: string, json: any) {
   return acc + remain
 }
 
+app.get('/articles', (req, res) => res.json({ articles }))
 app.get('/', async (req, res, next) => {
   try {
     let html = await readFileString('public/index.html')
-    let articles = [
-      { id: 1, title: 'Apple', desc: 'Apple is a red fruit' },
-      { id: 2, title: 'Banana', desc: 'Banana is a yellow fruit' },
-    ]
     html = await expandDataTemplate(html, { articles })
     res.contentType('text/html')
     res.end(html)
@@ -137,6 +149,28 @@ app.get('/', async (req, res, next) => {
     next(error)
   }
 })
+
+let articles = [
+  {
+    id: 1,
+    title: 'Apple',
+    desc: 'Apple is a red fruit',
+    href: '/article.html?id=1',
+  },
+  {
+    id: 2,
+    title: 'Banana',
+    desc: 'Banana is a yellow fruit',
+    href: '/article.html?id=2',
+  },
+]
+
+async function test() {
+  let html = await readFileString('public/index.html')
+  html = await expandDataTemplate(html, { articles })
+  console.log(html) // TODO
+}
+test()
 
 app.use(express.static('public'))
 app.use(express.json())
