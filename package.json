@@ -1,0 +1,30 @@
+{
+  "name": "node-data-template",
+  "version": "0.0.0",
+  "description": "Server Rendering data-template (standalone + with express middleware)",
+  "keywords": [
+    "data-template",
+    "server-rendering",
+    "ssr",
+    "typescript",
+    "html",
+    "template",
+    "seo",
+    "engine",
+    "express"
+  ],
+  "author": "Beeno Tung <aabbcc1241@yahoo.com.hk> (https://beeno-tung.surge.sh)",
+  "license": "BSD-2-Clause",
+  "main": "index.js",
+  "files": [],
+  "scripts": {
+    "test": "tsc --noEmit",
+    "build": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.9",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.6"
+  }
+}
