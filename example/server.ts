@@ -19,7 +19,24 @@ function renderDataAttributes(html: string, json: any): string {
   if (Array.isArray(json)) {
     return json.map(item => renderDataAttributes(html, item)).join('')
   }
-  return html
+  let acc = ''
+  let remain = html
+  for (; remain.length > 0; ) {
+    let match = remain.match(
+      /<(.+?) (.|\n)*?data-text="(.+?)"(.|\n)*?>(.|\n)*?<\//,
+    )
+    if (!match) break
+    let tagName = match[1]
+    let name = match[3]
+    let startIndex = match[0].indexOf('>')
+    let suffix = `</${tagName}>`
+    let endIndex = match[0].indexOf(suffix, startIndex + 1)
+    let before = remain.substring(0, match.index)
+    let after = remain.substring(match.index! + endIndex + suffix.length)
+    acc += before + json[name]
+    remain = after
+  }
+  return acc + remain
 }
 
 // data-name -> innerHTML
