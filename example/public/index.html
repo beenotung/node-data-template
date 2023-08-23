@@ -5,14 +5,42 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Demo</title>
+    <style>
+      header,
+      footer {
+        border: 1px solid black;
+      }
+    </style>
   </head>
   <body>
     <header id="header" data-template="header.html"></header>
+    <main>
+      <h1>Demo Articles</h1>
+      <div id="articleList" data-template="article" data-bind="articles"></div>
+    </main>
+    <template data-name="article">
+      <article>
+        <h2 data-text="title"></h2>
+        <a data-href="href">Read More</a>
+        <p data-text="desc"></p>
+      </article>
+    </template>
     <footer id="footer" data-template="footer.html"></footer>
-    <!-- <script src="/base.js"></script> -->
+    <script src="/base.js"></script>
     <script>
-      renderTemplate(header)
-      renderTemplate(footer)
+      function init() {
+        renderTemplate(header)
+        renderTemplate(footer)
+        let articles = [
+          { id: 1, title: 'Apple', desc: 'Apple is a red fruit' },
+          { id: 2, title: 'Banana', desc: 'Banana is a yellow fruit' },
+        ]
+        for (let article of articles) {
+          article.href = '/article.html?id=' + article.id
+        }
+        renderTemplate(articleList, { articles })
+      }
+      // init()
     </script>
   </body>
 </html>
