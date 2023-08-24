@@ -22,10 +22,11 @@ function escapeHTML(data: any): string {
     .replace(/>/g, '&gt;')
 }
 
-function renderDataAttributes(html: string, json: any): string {
-  if (Array.isArray(json)) {
-    return json.map(item => renderDataAttributes(html, item)).join('')
-  }
+function escapeAttributeValue(data: any): string {
+  return JSON.stringify(data)
+}
+
+function renderDataText(html: string, json: any): string {
   let acc = ''
   let remain = html
   for (; remain.length > 0; ) {
@@ -53,6 +54,42 @@ function renderDataAttributes(html: string, json: any): string {
     remain = after
   }
   return acc + remain
+}
+
+function renderInlineDataAttributes(html: string, json: any): string {
+  let acc = ''
+  let remain = html
+  for (; remain.length > 0; ) {
+    let tagMatch = remain.match(/<([\w-]+)/)
+    if (!tagMatch) break
+    let before = remain.substring(0, tagMatch.index)
+    let openTagEndIndex = remain.indexOf('>', tagMatch.index)
+    let openTag = remain.substring(tagMatch.index!, openTagEndIndex + 1)
+    let attrMatch = openTag.match(/data-href="(.+?)"/)
+    if (!attrMatch) {
+      acc += before + openTag
+      remain = remain.substring(openTagEndIndex + 1)
+      continue
+    }
+    let name = attrMatch[1]
+    let value = json[name]
+    openTag = openTag.replace(
+      attrMatch[0],
+      attrMatch[0] + ` href=${escapeAttributeValue(value)}`,
+    )
+    acc += before + openTag
+    remain = remain.substring(openTagEndIndex + 1)
+  }
+  return acc + remain
+}
+
+function renderDataAttributes(html: string, json: any): string {
+  if (Array.isArray(json)) {
+    return json.map(item => renderDataAttributes(html, item)).join('')
+  }
+  html = renderDataText(html, json)
+  html = renderInlineDataAttributes(html, json)
+  return html
 }
 
 // data-name -> innerHTML
