@@ -19,7 +19,12 @@
       <div id="articleList" data-template="article" data-bind="articles"></div>
     </main>
     <template data-name="article">
-      <article>
+      <article
+        data-id="node_id"
+        data-class="node_class"
+        data-onclick="onclick"
+        data-style="node_style"
+      >
         <h2 data-text="title"></h2>
         <a data-href="href">Read More</a>
         <p data-text="desc"></p>

@@ -65,18 +65,27 @@ function renderInlineDataAttributes(html: string, json: any): string {
     let before = remain.substring(0, tagMatch.index)
     let openTagEndIndex = remain.indexOf('>', tagMatch.index)
     let openTag = remain.substring(tagMatch.index!, openTagEndIndex + 1)
-    let attrMatch = openTag.match(/data-href="(.+?)"/)
-    if (!attrMatch) {
-      acc += before + openTag
-      remain = remain.substring(openTagEndIndex + 1)
-      continue
+    let apply = (
+      attr: string,
+      render: (value: string, name: string) => string,
+    ) => {
+      let attrMatch = openTag.match(
+        new RegExp(String.raw`data-${attr}="(.+?)"`),
+      )
+      if (!attrMatch) return
+      let name = attrMatch[1]
+      let value = json[name]
+      let mid = render(value, name)
+      if (!mid) return
+      let midIndex = attrMatch.index! + attrMatch[0].length
+      let before = openTag.substring(0, midIndex)
+      let after = openTag.substring(midIndex)
+      openTag = `${before}${mid}${after}`
     }
-    let name = attrMatch[1]
-    let value = json[name]
-    openTag = openTag.replace(
-      attrMatch[0],
-      attrMatch[0] + ` href=${escapeAttributeValue(value)}`,
-    )
+    for (let attr of ['href', 'id', 'class', 'style'])
+      apply(attr, value =>
+        value ? ` ${attr}=${escapeAttributeValue(value)}` : '',
+      )
     acc += before + openTag
     remain = remain.substring(openTagEndIndex + 1)
   }
@@ -193,12 +202,24 @@ let articles = [
     title: 'Apple',
     desc: 'Apple is a red fruit',
     href: '/article.html?id=1',
+    node_id: 'article-1',
+    node_class: 'article first-article',
+    node_style: 'font-weight: bold',
   },
   {
     id: 2,
     title: 'Banana',
     desc: 'Banana is a yellow fruit',
     href: '/article.html?id=2',
+    node_id: 'article-2',
+    node_class: 'article second-article',
+    node_style: 'font-weight: italic',
+  },
+  {
+    id: 3,
+    title: 'Cherry',
+    desc: 'Cherry is a purple fruit',
+    href: '/article.html?id=3',
   },
 ]
 
