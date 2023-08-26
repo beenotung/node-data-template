@@ -106,6 +106,7 @@ function renderInlineDataAttributes(html: string, json: any): string {
         value ? ` ${attr}=${escapeAttributeValue(value)}` : '',
       )
     for (let attr of boolAttrs) apply(attr, value => (value ? ` ${attr}` : ''))
+    apply('show', value => (value ? '' : ' hidden'))
     acc += before + openTag
     remain = remain.substring(openTagEndIndex + 1)
   }
@@ -225,6 +226,7 @@ let articles = [
     node_id: 'article-1',
     node_class: 'article first-article',
     node_style: 'font-weight: bold',
+    is_first: true,
   },
   {
     id: 2,
