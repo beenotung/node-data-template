@@ -56,6 +56,25 @@ function renderDataText(html: string, json: any): string {
   return acc + remain
 }
 
+let valueAttrs = [
+  'class',
+  'id',
+  'title',
+  'href',
+  'src',
+  'alt',
+  'value',
+  'action',
+]
+let boolAttrs = [
+  'hidden',
+  'checked',
+  'selected',
+  'disabled',
+  'readonly',
+  'open',
+]
+
 function renderInlineDataAttributes(html: string, json: any): string {
   let acc = ''
   let remain = html
@@ -82,10 +101,11 @@ function renderInlineDataAttributes(html: string, json: any): string {
       let after = openTag.substring(midIndex)
       openTag = `${before}${mid}${after}`
     }
-    for (let attr of ['href', 'id', 'class', 'style'])
+    for (let attr of valueAttrs)
       apply(attr, value =>
         value ? ` ${attr}=${escapeAttributeValue(value)}` : '',
       )
+    for (let attr of boolAttrs) apply(attr, value => (value ? ` ${attr}` : ''))
     acc += before + openTag
     remain = remain.substring(openTagEndIndex + 1)
   }
@@ -220,6 +240,7 @@ let articles = [
     title: 'Cherry',
     desc: 'Cherry is a purple fruit',
     href: '/article.html?id=3',
+    readonly: true,
   },
 ]
 
