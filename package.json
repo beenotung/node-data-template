@@ -15,14 +15,24 @@
   ],
   "author": "Beeno Tung <aabbcc1241@yahoo.com.hk> (https://beeno-tung.surge.sh)",
   "license": "BSD-2-Clause",
-  "main": "index.js",
-  "files": [],
+  "main": "dist/core.js",
+  "types": "dist/core.d.ts",
+  "files": [
+    "dist/core.d.ts",
+    "dist/core.js"
+  ],
   "scripts": {
     "test": "tsc --noEmit",
     "build": "tsc -p ."
   },
+  "peerDependencies": {
+    "@types/express": "^4.17.17",
+    "express": "^4.18.2"
+  },
   "devDependencies": {
+    "@types/express": "^4.17.17",
     "@types/node": "^20.4.9",
+    "express": "^4.18.2",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.1.6"
