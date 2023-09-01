@@ -1,8 +1,18 @@
 # node-data-template
 
-Server Rendering [data-template](https://github.com/beenotung/data-template) (framework agnostic with express support)
-
 [![npm Package Version](https://img.shields.io/npm/v/node-data-template)](https://www.npmjs.com/package/node-data-template)
+
+Fast, SEO-friendly server-side rendering [data-template](https://github.com/beenotung/data-template) for smoother user experiences.
+
+node-data-template is framework agnostic (with express support).
+
+## Motivation
+
+Server-side rendering (SSR) pages with data-template into plain HTML to deliver information as soon as possible. Directly delivery content over the wire (without running any javascript and ajax on the client side) enhances user experience by presenting readable content immediately upon request, reducing wait times and potential user frustration.
+
+The benefits of SSR extend beyond speed; it also improves Search Engine Optimization (SEO). Search engine crawlers often have lower priority to run and index JavaScript-rendered content, but they can readily understand and index server-rendered HTML. This means your website's content is more likely to appear in search results, driving more organic traffic to your site.
+
+In summary, server-side rendering is a effective strategy for boosting both the speed and SEO performance of a website.
 
 ## Installation
 
