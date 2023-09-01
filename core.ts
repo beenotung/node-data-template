@@ -1,48 +1,52 @@
-import { Response } from 'express'
+import { Request, Response, RequestHandler } from 'express'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 
 // TODO write tests for exported functions
 
-function readFileString(file: string): Promise<string> {
+function readFileString(dir: string, filename: string): Promise<string> {
+  let file = join(dir, filename)
   return readFile(file).then(bin => bin.toString())
 }
 
 export async function responseDataTemplateFile(
   res: Response,
-  file: string,
-  bindings: any,
+  dir: string,
+  filename: string,
+  bindings: object,
 ): Promise<void> {
-  let html = await renderDataTemplateFile(file, bindings)
+  let html = await renderDataTemplateFile(dir, filename, bindings)
   res.contentType('text/html')
   res.end(html)
 }
 
 export async function renderDataTemplateFile(
-  file: string,
-  bindings: any,
+  dir: string,
+  filename: string,
+  bindings: object,
 ): Promise<string> {
-  return readFileString(file).then(html => renderDataTemplate(html, bindings))
+  return readFileString(dir, filename).then(html =>
+    renderDataTemplate(dir, html, bindings),
+  )
 }
 
-async function readTemplateFile(filename: string) {
-  let file = join('public', filename)
-  let html = await readFileString(file)
+async function readTemplateFile(dir: string, filename: string) {
+  let html = await readFileString(dir, filename)
   return html
 }
 
-function escapeHTML(data: any): string {
-  return String(data)
+function escapeHTML(value: unknown): string {
+  return String(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
 }
 
-function escapeAttributeValue(data: any): string {
-  return JSON.stringify(data)
+function escapeAttributeValue(value: unknown): string {
+  return JSON.stringify(value)
 }
 
-function renderDataText(html: string, json: any): string {
+function renderDataText(html: string, json: object): string {
   let acc = ''
   let remain = html
   for (; remain.length > 0; ) {
@@ -58,7 +62,7 @@ function renderDataText(html: string, json: any): string {
       remain = remain.substring(openTagEndIndex + 1)
       continue
     }
-    let name = attrMatch[1]
+    let name = attrMatch[1] as keyof typeof json
     let innerHTML = escapeHTML(json[name])
     let closeTag = `</${tagName}>`
     let closeTagStartIndex = remain.indexOf(
@@ -91,7 +95,7 @@ let boolAttrs = [
   'open',
 ]
 
-function renderInlineDataAttributes(html: string, json: any): string {
+function renderInlineDataAttributes(html: string, json: object): string {
   let acc = ''
   let remain = html
   for (; remain.length > 0; ) {
@@ -102,13 +106,13 @@ function renderInlineDataAttributes(html: string, json: any): string {
     let openTag = remain.substring(tagMatch.index!, openTagEndIndex + 1)
     let apply = (
       attr: string,
-      render: (value: string, name: string) => string,
+      render: (value: unknown, name: string) => string,
     ) => {
       let attrMatch = openTag.match(
         new RegExp(String.raw`data-${attr}="(.+?)"`),
       )
       if (!attrMatch) return
-      let name = attrMatch[1]
+      let name = attrMatch[1] as keyof typeof json
       let value = json[name]
       let mid = render(value, name)
       if (!mid) return
@@ -129,7 +133,7 @@ function renderInlineDataAttributes(html: string, json: any): string {
   return acc + remain
 }
 
-function renderDataAttributes(html: string, values: any): string {
+function renderDataAttributes(html: string, values: object): string {
   if (Array.isArray(values)) {
     return values.map(item => renderDataAttributes(html, item)).join('')
   }
@@ -162,8 +166,9 @@ function parseTemplateElements(html: string) {
 }
 
 export async function renderDataTemplate(
+  dir: string,
   html: string,
-  bindings: any,
+  bindings: object,
 ): Promise<string> {
   let templateDict = parseTemplateElements(html)
   let acc = ''
@@ -201,9 +206,11 @@ export async function renderDataTemplate(
     let templateHTML: string
     if (templateName.endsWith('.html')) {
       // TODO to render recursively?
-      templateHTML = await readTemplateFile(templateName)
+      templateHTML = await readTemplateFile(dir, templateName)
     } else {
-      let bind = hostStart.match(/ data-bind="(.+?)"/)?.[1]
+      let bind = hostStart.match(
+        / data-bind="(.+?)"/,
+      )?.[1] as keyof typeof bindings
       if (!(templateName in templateDict)) {
         console.debug(
           'failed to find template by data-name attribute:',
@@ -212,7 +219,7 @@ export async function renderDataTemplate(
         break
       }
       let templateInnerHTML = templateDict[templateName]
-      let data = bindings[bind!] || {}
+      let data = bindings[bind] || {}
       templateHTML = renderDataAttributes(templateInnerHTML, data)
     }
 
@@ -224,3 +231,51 @@ export async function renderDataTemplate(
   }
   return acc + remain
 }
+
+export function staticDataTemplateHandler(
+  dir: string,
+  filename: string,
+  resolveBindings: (req: Request) => object | Promise<object>,
+): RequestHandler {
+  return async (req, res, next) => {
+    try {
+      let bindings = await resolveBindings(req)
+      responseDataTemplateFile(res, dir, filename, bindings)
+    } catch (error) {
+      next(error)
+    }
+  }
+}
+
+export type DynamicDataTemplateHandlerResult = {
+  dir: string
+  filename: string
+  bindings: object
+}
+
+export function dynamicDataTemplateHandler(
+  resolve: (
+    req: Request,
+  ) =>
+    | DynamicDataTemplateHandlerResult
+    | Promise<DynamicDataTemplateHandlerResult>,
+): RequestHandler {
+  return async (req, res, next) => {
+    try {
+      let { dir, filename, bindings } = await resolve(req)
+      responseDataTemplateFile(res, dir, filename, bindings)
+    } catch (error) {
+      next(error)
+    }
+  }
+}
+
+export let dataTemplate = {
+  responseFile: responseDataTemplateFile,
+  renderFile: renderDataTemplateFile,
+  render: renderDataTemplate,
+  static: staticDataTemplateHandler,
+  dynamic: dynamicDataTemplateHandler,
+}
+
+export default dataTemplate

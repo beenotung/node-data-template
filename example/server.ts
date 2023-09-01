@@ -1,20 +1,8 @@
 import express from 'express'
 import { print } from 'listening-on'
-import {
-  renderDataTemplateFile,
-  responseDataTemplateFile,
-} from 'node-data-template'
+import dataTemplate from 'node-data-template'
 
 let app = express()
-
-app.get('/articles', (req, res) => res.json({ articles }))
-app.get('/', async (req, res, next) => {
-  try {
-    await responseDataTemplateFile(res, 'public/index.html', { articles })
-  } catch (error) {
-    next(error)
-  }
-})
 
 let articles = [
   {
@@ -45,15 +33,13 @@ let articles = [
   },
 ]
 
-async function test() {
-  let html = await renderDataTemplateFile('public/index.html', { articles })
-  console.log(html)
-}
-// test()
+app.get('/articles', (req, res) => res.json({ articles }))
+app.get(
+  '/',
+  dataTemplate.static('public', 'index.html', () => ({ articles })),
+)
 
 app.use(express.static('public'))
-app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
 
 let port = 8100
 app.listen(port, () => {
