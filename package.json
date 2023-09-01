@@ -1,6 +1,6 @@
 {
   "name": "node-data-template",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Server Rendering data-template (standalone + with express middleware)",
   "keywords": [
     "data-template",
