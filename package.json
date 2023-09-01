@@ -1,6 +1,6 @@
 {
   "name": "node-data-template",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fast, SEO-friendly server-side rendering data-template for smoother user experiences (framework agnostic with express support)",
   "keywords": [
     "data-template",
