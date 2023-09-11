@@ -2,7 +2,7 @@
 
 [![npm Package Version](https://img.shields.io/npm/v/node-data-template)](https://www.npmjs.com/package/node-data-template)
 
-Fast, SEO-friendly server-side rendering [data-template](https://github.com/beenotung/data-template) for smoother user experiences.
+Fast, SEO-friendly server-side rendering (SSR) [data-template](https://github.com/beenotung/data-template) for smoother user experiences.
 
 node-data-template is framework agnostic (with express support).
 
