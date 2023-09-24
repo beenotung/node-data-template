@@ -14,6 +14,7 @@ let articles = [
     node_class: 'article first-article',
     node_style: 'font-weight: bold',
     is_first: true,
+    also_person_name: true,
   },
   {
     id: 2,
@@ -30,6 +31,7 @@ let articles = [
     desc: 'Cherry is a purple fruit',
     href: '/article.html?id=3',
     readonly: true,
+    also_person_name: true,
   },
 ]
 
