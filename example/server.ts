@@ -1,6 +1,7 @@
-import express from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import { print } from 'listening-on'
-import dataTemplate from 'node-data-template'
+import dataTemplate from '../core'
+import dataTemplate2 from '../core2'
 
 let app = express()
 
@@ -34,14 +35,31 @@ let articles = [
 ]
 
 app.get('/articles', (req, res) => res.json({ articles }))
-app.get(
-  '/',
-  dataTemplate.static('public', 'index.html', () => ({ articles })),
+// app.get(
+//   '/',
+//   dataTemplate.static('public', 'index.html', () => ({ articles })),
+// )
+let context = dataTemplate2('public')
+app.use(
+  dataTemplate2.ssr('public', '/index.html', ctx => {
+    context.renderTemplate('index.html', { articles })
+  }),
 )
+let index = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    let html = await context.renderTemplate('index.html', { articles })
+    res.header('Content-Type', 'text/html')
+    res.end(html)
+  } catch (error) {
+    next(error)
+  }
+}
+app.get('/', index)
+app.get('/index.html', index)
 
 app.use(express.static('public'))
 
-let port = 8100
+let port = +process.env.PORT! || 8100
 app.listen(port, () => {
   print(port)
 })
