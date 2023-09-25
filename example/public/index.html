@@ -37,12 +37,12 @@
     <footer id="footer" data-template="footer.html"></footer>
     <script src="/base.js"></script>
     <script>
-      function init() {
+      function initRender() {
         renderTemplate(header)
         getJSON('/articles', json => renderTemplate(articleList, json))
         renderTemplate(footer)
       }
-      // init()
+      // initRender()
     </script>
   </body>
 </html>
