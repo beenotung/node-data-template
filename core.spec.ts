@@ -34,7 +34,7 @@ describe('general', () => {
       values: { message: 'hello world' },
       templateHTML: '<div data-text="message"></div>',
       expectedHTML: '<div data-text="message">hello world</div>',
-      message: 'should render data-text',
+      message: 'should set innerText',
     })
   })
   test('class', () => {
