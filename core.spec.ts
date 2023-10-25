@@ -151,15 +151,99 @@ describe('display', () => {
 })
 
 describe('input', () => {
-  test.todo('value')
-  test.todo('checked')
-  test.todo('selected')
-  test.todo('disabled')
-  test.todo('readonly')
+  test('value', () => {
+    t({
+      values: { name: 'alice' },
+      templateHTML: '<input data-value="name">',
+      expectedHTML: '<input data-value="name" value="alice">',
+      message: 'should set input value',
+    })
+  })
+  test('checked', () => {
+    t({
+      values: { active: true },
+      templateHTML: '<input type="checkbox" data-checked="active">',
+      expectedHTML: '<input type="checkbox" data-checked="active" checked>',
+      message: 'should set checked attribute',
+    })
+    t({
+      values: { active: false },
+      templateHTML: '<input type="checkbox" data-checked="active" checked>',
+      expectedHTML: '<input type="checkbox" data-checked="active">',
+      message: 'should remove checked attribute',
+    })
+  })
+  test('selected', () => {
+    t({
+      values: { red: true },
+      templateHTML: `<select>
+  <option data-selected="red">red</option>
+  <option data-selected="green">green</option>
+</select>`,
+      expectedHTML: `<select>
+  <option data-selected="red" selected>red</option>
+  <option data-selected="green">green</option>
+</select>`,
+      message: 'should set checked attribute',
+    })
+    t({
+      values: { green: true },
+      templateHTML: `<select>
+  <option data-selected="red" selected>red</option>
+  <option data-selected="green">green</option>
+</select>`,
+      expectedHTML: `<select>
+  <option data-selected="red">red</option>
+  <option data-selected="green" selected>green</option>
+</select>`,
+      message: 'should remove checked attribute',
+    })
+  })
+  test('disabled', () => {
+    t({
+      values: { expired: true },
+      templateHTML: '<input data-disabled="expired">',
+      expectedHTML: '<input data-disabled="expired" disabled>',
+      message: 'should set disabled attribute',
+    })
+    t({
+      values: { expired: false },
+      templateHTML: '<input data-disabled="expired" disabled>',
+      expectedHTML: '<input data-disabled="expired">',
+      message: 'should remove disabled attribute',
+    })
+  })
+  test('readonly', () => {
+    t({
+      values: { confirmed: true },
+      templateHTML: '<input data-readonly="confirmed">',
+      expectedHTML: '<input data-readonly="confirmed" readonly>',
+      message: 'should set readonly attribute',
+    })
+    t({
+      values: { confirmed: false },
+      templateHTML: '<input data-readonly="confirmed" readonly>',
+      expectedHTML: '<input data-readonly="confirmed">',
+      message: 'should remove readonly attribute',
+    })
+  })
 })
 
 describe('dialog', () => {
-  test.todo('open')
+  test('open', () => {
+    t({
+      values: { showImage: true },
+      templateHTML: '<dialog data-open="showImage">sample text</dialog>',
+      expectedHTML: '<dialog data-open="showImage" open>sample text</dialog>',
+      message: 'should set open attribute',
+    })
+    t({
+      values: { showImage: false },
+      templateHTML: '<dialog data-open="showImage" open>sample text</dialog>',
+      expectedHTML: '<dialog data-open="showImage">sample text</dialog>',
+      message: 'should remove open attribute',
+    })
+  })
 })
 
 describe('form', () => {

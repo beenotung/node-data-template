@@ -29,9 +29,26 @@ export function renderData(container: Node, values: object) {
     v == true ? removeAttr(e, 'hidden') : addAttr(e, 'hidden'),
   )
   apply('if', (e, v) => v || removeElement(e))
-  for (let attr of ['hidden'])
+  for (let attr of [
+    'open',
+    'checked',
+    'disabled',
+    'selected',
+    'hidden',
+    'readonly',
+  ])
     apply(attr, (e, v) => (v ? addAttr(e, attr) : removeAttr(e, attr)))
-  for (let attr of ['id', 'title', 'href', 'src', 'alt'])
+  for (let attr of [
+    'id',
+    'title',
+    'href',
+    'src',
+    'alt',
+    'value',
+    'action',
+    'onsubmit',
+    'onclick',
+  ])
     apply(attr, (e, v) => v && setAttr(e, attr, v))
 }
 
