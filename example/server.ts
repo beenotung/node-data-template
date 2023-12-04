@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express'
 import { print } from 'listening-on'
-import { scanTemplates } from '../core3'
+import { scanTemplates } from '../core'
 import { dataTemplate } from '../express'
 
 let app = express()

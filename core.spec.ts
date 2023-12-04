@@ -1,7 +1,7 @@
 import { parseHtmlDocument } from 'html-parser.ts'
 import assert from 'node:assert'
 import { describe, test } from 'node:test'
-import { renderData } from './core3'
+import { renderData } from './core'
 
 // setTimeout(() => {}, 2 ** 31 - 1)
 

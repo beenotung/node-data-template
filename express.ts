@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { loadDocument, Context } from './core3'
+import { loadDocument, Context } from './core'
 
 export function dataTemplate(options: { templateDir: string }) {
   let { templateDir } = options
