@@ -7,6 +7,8 @@ import {
   parseHtmlDocument,
   walkNode,
 } from 'html-parser.ts'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 function bindTemplate(host: HTMLElement, template: Node, values: object) {
   let node = template.clone()
@@ -21,18 +23,27 @@ function bindTemplate(host: HTMLElement, template: Node, values: object) {
   }
 }
 
-function getText(
-  url: string,
-  options: RequestInit,
-  cb: (text: string) => void,
-) {
-  let p = fetch(url, options).then(res => res.text())
-  p.then(text => cb(text))
-  return p
+export type Context = {
+  document: Document
+  rootDir: string
+}
+
+let cache: Record<string, Document | undefined> = Object.create(null)
+
+export function loadDocument(rootDir: string, name: string) {
+  let file = join(rootDir, name)
+  let document = cache[file]
+  if (document) {
+    return document
+  }
+  let html = readFileSync(file).toString()
+  document = parseHtmlDocument(html)
+  cache[file] = document
+  return document
 }
 
 export function renderTemplate(
-  document: Document,
+  context: Context,
   host: HTMLElement,
   binds = {},
 ) {
@@ -43,12 +54,10 @@ export function renderTemplate(
   if (name?.endsWith('.html')) {
     template = new HTMLElement()
     template.tagName = 'dir'
-    getText(name, {}, html => {
-      template.childNodes = [parseHtmlDocument(html)]
-      next()
-    })
+    template.childNodes = [loadDocument(context.rootDir, name)]
+    next()
   } else {
-    walkNode(document, node => {
+    walkNode(context.document, node => {
       if (
         node instanceof HTMLElement &&
         node.isTagName('template') &&
@@ -67,13 +76,13 @@ export function renderTemplate(
   }
 }
 
-export function scanTemplates(document: Document, root: Document, binds = {}) {
+export function scanTemplates(context: Context, root: Document, binds = {}) {
   walkNode(root, host => {
     if (
       host instanceof HTMLElement &&
       host.attributes?.hasName('data-template')
     ) {
-      renderTemplate(document, host, binds)
+      renderTemplate(context, host, binds)
       return 'skip_child'
     }
   })
