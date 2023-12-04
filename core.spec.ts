@@ -235,7 +235,13 @@ describe('dialog', () => {
       values: { showImage: true },
       templateHTML: '<dialog data-open="showImage">sample text</dialog>',
       expectedHTML: '<dialog data-open="showImage" open>sample text</dialog>',
-      message: 'should set open attribute',
+      message: 'should add open attribute',
+    })
+    t({
+      values: { showImage: true },
+      templateHTML: '<dialog data-open="showImage" open>sample text</dialog>',
+      expectedHTML: '<dialog data-open="showImage" open>sample text</dialog>',
+      message: 'should keep existing open attribute',
     })
     t({
       values: { showImage: false },
