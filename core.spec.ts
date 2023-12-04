@@ -247,10 +247,30 @@ describe('dialog', () => {
 })
 
 describe('form', () => {
-  test.todo('action')
-  test.todo('onsubmit')
-})
-
-describe('event', () => {
-  test.todo('onclick')
+  test('action', () => {
+    t({
+      values: { url: '/categories/1/products' },
+      templateHTML: `<form method="POST" data-action="url">
+  <input name="product">
+  <input name="price">
+</form>`,
+      expectedHTML: `<form method="POST" data-action="url" action="/categories/1/products">
+  <input name="product">
+  <input name="price">
+</form>`,
+      message: 'should add action attribute',
+    })
+    t({
+      values: { url: '/categories/1/products' },
+      templateHTML: `<form method="POST" data-action="url" action="/products">
+  <input name="product">
+  <input name="price">
+</form>`,
+      expectedHTML: `<form method="POST" data-action="url" action="/categories/1/products">
+  <input name="product">
+  <input name="price">
+</form>`,
+      message: 'should update action attribute',
+    })
+  })
 })
