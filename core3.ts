@@ -13,33 +13,35 @@ import { join } from 'node:path'
 function bindTemplate(host: HTMLElement, template: Node, values: object) {
   let node = template.clone()
   let container = new HTMLElement()
-  container.tagName = 'dir'
+  container.tagName = 'div'
   container.childNodes = [node]
   renderData(container, values)
   if (host.childNodes) {
-    host.childNodes.push(...container.childNodes)
+    host.childNodes.push(...node.childNodes!)
   } else {
-    host.childNodes = container.childNodes
+    host.childNodes = node.childNodes
   }
 }
 
 export type Context = {
   document: Document
-  rootDir: string
+  templateDir: string
 }
 
 let cache: Record<string, Document | undefined> = Object.create(null)
 
-export function loadDocument(rootDir: string, name: string) {
-  let file = join(rootDir, name)
-  let document = cache[file]
-  if (document) {
-    return document
+export function loadDocument(templateDir: string, filename: string) {
+  if (filename === '/') {
+    filename = '/index.html'
   }
-  let html = readFileSync(file).toString()
-  document = parseHtmlDocument(html)
-  cache[file] = document
-  return document
+  let file = join(templateDir, filename)
+  let document = cache[file]
+  if (!document) {
+    let html = readFileSync(file).toString()
+    document = parseHtmlDocument(html)
+    cache[file] = document
+  }
+  return document.clone()
 }
 
 export function renderTemplate(
@@ -53,8 +55,8 @@ export function renderTemplate(
   host.childNodes = []
   if (name?.endsWith('.html')) {
     template = new HTMLElement()
-    template.tagName = 'dir'
-    template.childNodes = [loadDocument(context.rootDir, name)]
+    template.tagName = 'div'
+    template.childNodes = [loadDocument(context.templateDir, name)]
     next()
   } else {
     walkNode(context.document, node => {
@@ -76,7 +78,11 @@ export function renderTemplate(
   }
 }
 
-export function scanTemplates(context: Context, root: Document, binds = {}) {
+export function scanTemplates(
+  context: Context,
+  root: Document = context.document,
+  binds = {},
+) {
   walkNode(root, host => {
     if (
       host instanceof HTMLElement &&
