@@ -4,8 +4,193 @@ import {
   HTMLElement,
   Node,
   Text,
+  parseHtmlDocument,
   walkNode,
 } from 'html-parser.ts'
+
+function bindTemplate(host: HTMLElement, template: Node, values: object) {
+  let node = template.clone()
+  let container = new HTMLElement()
+  container.tagName = 'dir'
+  container.childNodes = [node]
+  renderData(container, values)
+  if (host.childNodes) {
+    host.childNodes.push(...container.childNodes)
+  } else {
+    host.childNodes = container.childNodes
+  }
+}
+
+function getText(
+  url: string,
+  options: RequestInit,
+  cb: (text: string) => void,
+) {
+  let p = fetch(url, options).then(res => res.text())
+  p.then(text => cb(text))
+  return p
+}
+
+export function renderTemplate(
+  document: Document,
+  host: HTMLElement,
+  binds = {},
+) {
+  let name = host.attributes!.getValue('data-template')!
+  let values = (binds as any)[host.attributes!.getValue('data-bind')!] || binds
+  let template: HTMLElement
+  host.childNodes = []
+  if (name?.endsWith('.html')) {
+    template = new HTMLElement()
+    template.tagName = 'dir'
+    getText(name, {}, html => {
+      template.childNodes = [parseHtmlDocument(html)]
+      next()
+    })
+  } else {
+    walkNode(document, node => {
+      if (
+        node instanceof HTMLElement &&
+        node.isTagName('template') &&
+        node.attributes?.getValue('data-name') == name
+      ) {
+        template = node
+        next()
+        return 'skip_child'
+      }
+    })
+  }
+  function next() {
+    Array.isArray(values)
+      ? values.forEach(values => bindTemplate(host, template, values))
+      : bindTemplate(host, template, values)
+  }
+}
+
+export function scanTemplates(document: Document, root: Document, binds = {}) {
+  walkNode(root, host => {
+    if (
+      host instanceof HTMLElement &&
+      host.attributes?.hasName('data-template')
+    ) {
+      renderTemplate(document, host, binds)
+      return 'skip_child'
+    }
+  })
+}
+
+export function fillForm(form: HTMLElement, o: object) {
+  let fields: Record<string, HTMLElement[]> = {}
+  walkNode(form, e => {
+    if (e instanceof HTMLElement) {
+      let name = e.attributes?.getValue('name')
+      if (name) {
+        let field = fields[name]
+        if (!field) {
+          fields[name] = [e]
+        } else {
+          field.push(e)
+        }
+        return 'skip_child'
+      }
+    }
+  })
+  for (let k in o) {
+    let value = (o as any)[k]
+    let field = fields[k]
+    if (!field || field.length == 0)
+      throw new Error(`form field not found, name = "${k}"`)
+    let input = field[0]
+    /* radio */
+    if (
+      input.isTagName('input') &&
+      input.attributes?.getValue('type') == 'radio'
+    ) {
+      for (let input of field) {
+        if (input.attributes!.getValue('value') == value) {
+          addAttr(input, 'checked')
+        } else {
+          removeAttr(input, 'checked')
+        }
+      }
+      continue
+    }
+    /* checkbox */
+    if (
+      input.isTagName('input') &&
+      input.attributes?.getValue('type') == 'checkbox'
+    ) {
+      if (Array.isArray(value)) {
+        /* multiple choice */
+        for (let input of field) {
+          if (value.includes(input.attributes?.getValue('value'))) {
+            addAttr(input, 'checked')
+          } else {
+            removeAttr(input, 'checked')
+          }
+        }
+      } else {
+        /* single choice */
+        for (let input of field) {
+          if (value) {
+            addAttr(input, 'checked')
+          } else {
+            removeAttr(input, 'checked')
+          }
+        }
+      }
+      continue
+    }
+    /* select */
+    if (input.isTagName('select')) {
+      if (input.childNodes) {
+        if (Array.isArray(value)) {
+          /* multiple choice */
+          for (let option of input.childNodes) {
+            if (option instanceof HTMLElement && option.isTagName('option')) {
+              if (value.includes(option.attributes?.getValue('value'))) {
+                addAttr(input, 'checked')
+              } else {
+                removeAttr(input, 'checked')
+              }
+            }
+          }
+        } else {
+          /* single choice */
+          for (let option of input.childNodes) {
+            if (option instanceof HTMLElement && option.isTagName('option')) {
+              if (option.attributes?.getValue('value') == value) {
+                addAttr(input, 'checked')
+              } else {
+                removeAttr(input, 'checked')
+              }
+            }
+          }
+        }
+      }
+      continue
+    }
+    for (let input of field) {
+      if (input instanceof HTMLInputElement) {
+        setAttr(input, 'value', value)
+      }
+    }
+  }
+}
+
+export function d2(x: number): string | number {
+  return x < 10 ? '0' + x : x
+}
+
+export function toInputDate(date: string | number | Date): string {
+  let d = new Date(date)
+  return d.getFullYear() + '-' + d2(d.getMonth() + 1) + '-' + d2(d.getDate())
+}
+
+export function toInputTime(date: string | number | Date): string {
+  let d = new Date(date)
+  return d2(d.getHours()) + ':' + d2(d.getMinutes())
+}
 
 export function renderData(container: Node, values: object) {
   let apply = (
