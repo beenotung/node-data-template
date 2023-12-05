@@ -3,8 +3,6 @@ import assert from 'node:assert'
 import { describe, test } from 'node:test'
 import { renderData } from './core'
 
-// setTimeout(() => {}, 2 ** 31 - 1)
-
 function t(input: {
   values: object
   templateHTML: string
