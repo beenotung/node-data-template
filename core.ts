@@ -187,7 +187,7 @@ export function fillForm(form: HTMLElement, o: object) {
     }
     for (let input of field) {
       if (input instanceof HTMLInputElement) {
-        setAttr(input, 'value', value)
+        input.setAttribute('value', value, '"')
       }
     }
   }
@@ -224,7 +224,7 @@ export function renderData(container: Node, values: object) {
     })
   }
   apply('text', (e, v) => (e.childNodes = [Text.parse(String(v)).data]))
-  apply('class', (e, v, k) => (v == true ? addClass(e, k) : addClass(e, v)))
+  apply('class', (e, v, k) => (v == true ? e.addClass(k) : v && e.addClass(v)))
   apply('show', (e, v) =>
     v == true ? removeAttr(e, 'hidden') : addAttr(e, 'hidden'),
   )
@@ -249,7 +249,7 @@ export function renderData(container: Node, values: object) {
     'onsubmit',
     'onclick',
   ])
-    apply(attr, (e, v) => v && setAttr(e, attr, v))
+    apply(attr, (e, v) => v && e.setAttribute(attr, v, '"'))
 }
 
 function removeElement(e: HTMLElement) {
@@ -295,47 +295,4 @@ function addAttr(e: HTMLElement, name: string) {
     e.attributes.attrs.push(' ')
   }
   e.attributes.attrs.push({ name })
-}
-
-function setAttr(e: HTMLElement, name: string, value: string) {
-  if (!e.attributes) {
-    e.attributes = new Attributes()
-    e.attributes.attrs.push({ name, value: `"${value}"` })
-    return
-  }
-  for (let attr of e.attributes.attrs) {
-    if (typeof attr == 'object' && attr.name == name) {
-      attr.value = `"${value}"`
-      return
-    }
-  }
-  if (e.attributes.attrs.length > 0) {
-    e.attributes.attrs.push(' ')
-  }
-  e.attributes.attrs.push({ name, value: `"${value}"` })
-}
-
-function addClass(e: HTMLElement, className: string) {
-  if (!e.attributes) {
-    e.attributes = Attributes.parse(`class="${className}"`).data
-    return
-  }
-  for (let attr of e.attributes.attrs) {
-    if (typeof attr == 'object' && attr.name == 'class') {
-      attr.value = concatClasses(attr.value, className)
-      return
-    }
-  }
-  if (e.attributes.attrs.length > 0) {
-    e.attributes.attrs.push(' ')
-  }
-  e.attributes.attrs.push({ name: 'class', value: `"${className}"` })
-}
-
-function concatClasses(original: string | undefined, extra: string): string {
-  if (!original) return `"${extra}"`
-  if (original[0] == '"' || original[0] == "'") {
-    original = original.slice(1, -1)
-  }
-  return `"${original} ${extra}"`
 }
