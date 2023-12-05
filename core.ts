@@ -23,7 +23,7 @@ function bindTemplate(host: HTMLElement, template: Node, values: object) {
   }
 }
 
-export type Context = {
+export type DataTemplateContext = {
   document: Document
   templateDir: string
 }
@@ -45,7 +45,7 @@ export function loadDocument(templateDir: string, filename: string) {
 }
 
 export function renderTemplate(
-  context: Context,
+  context: DataTemplateContext,
   host: HTMLElement,
   binds = {},
 ) {
@@ -79,7 +79,7 @@ export function renderTemplate(
 }
 
 export function scanTemplates(
-  context: Context,
+  context: DataTemplateContext,
   root: Document = context.document,
   binds = {},
 ) {

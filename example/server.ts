@@ -1,7 +1,7 @@
-import express, { NextFunction, Request, Response } from 'express'
+import express from 'express'
 import { print } from 'listening-on'
-import { scanTemplates } from '../core'
-import { dataTemplate } from '../express'
+import { scanTemplates } from 'node-data-template/core'
+import { dataTemplate } from 'node-data-template/express'
 
 let app = express()
 
@@ -36,16 +36,13 @@ let articles = [
 
 app.get('/articles', (req, res) => res.json({ articles }))
 
-let templates = dataTemplate({ templateDir: 'public' })
+let templates = dataTemplate({
+  templateDir: 'public',
+  minify: true,
+})
 
 app.get(
   '/',
-  templates.handle((context, req, next) => {
-    scanTemplates(context, context.document, { articles })
-  }),
-)
-app.get(
-  '/index.html',
   templates.handle((context, req, next) => {
     scanTemplates(context, context.document, { articles })
   }),
