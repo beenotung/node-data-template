@@ -68,6 +68,7 @@ function dataTemplate(options: {
 }): DataTemplateHandler
 
 interface DataTemplateHandler {
+  // to be used in express route handler
   handle: (render: RenderFn) => RequestHandler
 }
 
