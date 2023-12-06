@@ -52,7 +52,9 @@ app.get(
 
 app.use(express.static('public'))
 
-app.listen(8100)
+app.listen(8100, () => {
+  console.log('Server started and listening at http://localhost:8100')
+})
 ```
 
 ## API Types
